@@ -6,7 +6,13 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"sync"
+	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 )
 
@@ -39,6 +45,21 @@ type Metrics struct {
 	TotalCredits   int     `json:"total_credits_used"`
 }
 
+var (
+	client   *http.Client
+	once     sync.Once
+	token    string
+	baseURL  string
+	loadEnvs = func() {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+		token = os.Getenv("CIRCLECI_TOKEN")
+		baseURL = os.Getenv("API_URL")
+	}
+)
+
 // getProjectSummaryMetricsCmd represents the getProjectSummaryMetrics command
 var getProjectSummaryMetricsCmd = &cobra.Command{
 	Use:   "getProjectSummaryMetrics",
@@ -46,6 +67,12 @@ var getProjectSummaryMetricsCmd = &cobra.Command{
 	Long:  `Get summary metrics for a project's workflows. Workflow runs going back at most 90 days are included in the aggregation window.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("getProjectSummaryMetrics called")
+		client = &http.Client{
+			Timeout: 10 * time.Second,
+			Transport: &http.Transport{
+				MaxIdleConnsPerHost: 5,
+			},
+		}
 	},
 }
 
