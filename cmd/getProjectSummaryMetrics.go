@@ -150,4 +150,5 @@ func init() {
 	getProjectSummaryMetricsCmd.Flags().String("branch", "main", "The branch for a CircleCI project")
 	getProjectSummaryMetricsCmd.Flags().String("format", "table", "The format of the results to be shown")
 	getProjectSummaryMetricsCmd.Flags().String("reporting-window", "last-90-days", "The time window used to calculate summary metrics.")
+	getProjectSummaryMetricsCmd.MarkFlagRequired("slug")
 }
