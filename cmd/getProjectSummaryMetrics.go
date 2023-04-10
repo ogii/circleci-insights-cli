@@ -46,10 +46,13 @@ var getProjectSummaryMetricsCmd = &cobra.Command{
 	Long:  `Get summary metrics for a project's workflows. Workflow runs going back at most 90 days are included in the aggregation window.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("getProjectSummaryMetrics called")
-
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(getProjectSummaryMetricsCmd)
+	getProjectSummaryMetricsCmd.Flags().String("slug", "", "The slug for a CircleCI project in the format `gh/orgname/projectname`")
+	getProjectSummaryMetricsCmd.Flags().String("branch", "main", "The branch for a CircleCI project")
+	getProjectSummaryMetricsCmd.Flags().String("format", "table", "The format of the results to be shown")
+	getProjectSummaryMetricsCmd.Flags().String("reporting-window", "last-90-days", "The time window used to calculate summary metrics.")
 }
