@@ -1,10 +1,8 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jedib0t/go-pretty/table"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 )
@@ -73,7 +72,92 @@ var getProjectSummaryMetricsCmd = &cobra.Command{
 				MaxIdleConnsPerHost: 5,
 			},
 		}
+
+		slug, _ := cmd.Flags().GetString("slug")
+		branch, _ := cmd.Flags().GetString("branch")
+		format, _ := cmd.Flags().GetString("format")
+		reportingWindow, _ := cmd.Flags().GetString("reporting-window")
+
+		insightsSummary, err := fetchInsightsSummary(slug, branch, reportingWindow)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		switch formatType := format; formatType {
+		case "table":
+			printInsightsSummaryTable(*insightsSummary)
+		default:
+			printInsightsSummaryList(*insightsSummary)
+		}
+
 	},
+}
+
+func fetchInsightsSummary(slug, branch, reportingWindow string) (*InsightsSummary, error) {
+	if slug == "" || branch == "" {
+		return nil, errors.New("slug and branch must not be empty")
+	}
+
+	url := fmt.Sprintf("%s/insights/%s/workflows/?branch=%s&reporting-window=%s", baseURL, slug, branch, reportingWindow)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating HTTP request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Circle-Token", token)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error making HTTP request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error: non-200 response from CircleCI API: %s", resp.Status)
+	}
+
+	var insightsSummary InsightsSummary
+	err = json.NewDecoder(resp.Body).Decode(&insightsSummary)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling JSON response: %v", err)
+	}
+	return &insightsSummary, nil
+}
+
+func printInsightsSummaryList(insights InsightsSummary) {
+	if len(insights.Items) > 0 {
+		for _, item := range insights.Items {
+			fmt.Println("-----------------------------")
+			fmt.Printf("Workflow Name: %s\n", item.Name)
+			fmt.Printf("Credits Consumed: %d\n", item.Metrics.TotalCredits)
+			fmt.Printf("Success Rate: %.2f%%\n", item.Metrics.SuccessRate*100)
+			fmt.Printf("Total Runs: %d\n", item.Metrics.TotalRuns)
+			fmt.Printf("Failed Runs: %d\n", item.Metrics.FailedRuns)
+			fmt.Printf("Successful Runs: %d\n", item.Metrics.SuccessfulRuns)
+		}
+	} else {
+		fmt.Println("No data available.")
+	}
+}
+
+func printInsightsSummaryTable(insights InsightsSummary) {
+	itemsCount := len(insights.Items)
+	if itemsCount == 0 {
+		fmt.Println("No data available.")
+		return
+	}
+
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Workflow", "Credits Consumed", "Successful Runs", "Failed Runs", "Success Rate"})
+
+	for _, item := range insights.Items {
+		t.AppendRow(table.Row{item.Name, item.Metrics.TotalCredits, item.Metrics.SuccessfulRuns, item.Metrics.FailedRuns, item.Metrics.SuccessRate * 100})
+	}
+
+	t.Render()
 }
 
 func init() {
