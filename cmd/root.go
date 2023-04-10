@@ -3,7 +3,6 @@ package cmd
 import (
 	"log"
 	"os"
-	"sync"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
@@ -12,7 +11,6 @@ import (
 var (
 	token    string
 	baseURL  string
-	once     sync.Once
 	loadEnvs = func() {
 		err := godotenv.Load()
 		if err != nil {
@@ -37,5 +35,5 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	once.Do(loadEnvs)
+	loadEnvs()
 }
