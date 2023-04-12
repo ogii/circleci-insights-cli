@@ -10,37 +10,9 @@ import (
 	"time"
 
 	"github.com/jedib0t/go-pretty/table"
+	"github.com/ogii/circleci-insights-cli/data"
 	"github.com/spf13/cobra"
 )
-
-type InsightsSummary struct {
-	Items Items  `json:"items"`
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-}
-
-type Items []struct {
-	ID          string     `json:"id"`
-	Name        string     `json:"name"`
-	WindowStart string     `json:"window_start"`
-	WindowEnd   string     `json:"window_end"`
-	Repository  Repository `json:"repository"`
-	Metrics     Metrics    `json:"metrics"`
-}
-
-type Repository struct {
-	VcsType   string `json:"vcs_type"`
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-}
-
-type Metrics struct {
-	SuccessRate    float64 `json:"success_rate"`
-	TotalRuns      int     `json:"total_runs"`
-	FailedRuns     int     `json:"failed_runs"`
-	SuccessfulRuns int     `json:"successful_runs"`
-	TotalCredits   int     `json:"total_credits_used"`
-}
 
 var getProjectSummaryMetricsCmd = &cobra.Command{
 	Use:   "getProjectSummaryMetrics",
@@ -69,7 +41,7 @@ var getProjectSummaryMetricsCmd = &cobra.Command{
 	},
 }
 
-func fetchInsightsSummary(slug, branch, reportingWindow string) (*InsightsSummary, error) {
+func fetchInsightsSummary(slug, branch, reportingWindow string) (*data.InsightsSummary, error) {
 	if slug == "" || branch == "" {
 		return nil, errors.New("slug and branch must not be empty")
 	}
@@ -102,7 +74,7 @@ func fetchInsightsSummary(slug, branch, reportingWindow string) (*InsightsSummar
 		return nil, fmt.Errorf("error: non-200 response from CircleCI API: %s", resp.Status)
 	}
 
-	var insightsSummary InsightsSummary
+	var insightsSummary data.InsightsSummary
 	err = json.NewDecoder(resp.Body).Decode(&insightsSummary)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshaling JSON response: %v", err)
@@ -110,7 +82,7 @@ func fetchInsightsSummary(slug, branch, reportingWindow string) (*InsightsSummar
 	return &insightsSummary, nil
 }
 
-func printInsightsSummaryList(insights InsightsSummary) {
+func printInsightsSummaryList(insights data.InsightsSummary) {
 	if len(insights.Items) > 0 {
 		for _, item := range insights.Items {
 			fmt.Println("-----------------------------")
@@ -126,7 +98,7 @@ func printInsightsSummaryList(insights InsightsSummary) {
 	}
 }
 
-func printInsightsSummaryTable(insights InsightsSummary) {
+func printInsightsSummaryTable(insights data.InsightsSummary) {
 	itemsCount := len(insights.Items)
 	if itemsCount == 0 {
 		fmt.Println("No data available.")
