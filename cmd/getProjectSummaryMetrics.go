@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/jedib0t/go-pretty/list"
 	"github.com/jedib0t/go-pretty/table"
 	"github.com/ogii/circleci-insights-cli/data"
 	"github.com/spf13/cobra"
@@ -19,8 +19,6 @@ var getProjectSummaryMetricsCmd = &cobra.Command{
 	Short: "Get summary metrics for a project's workflows",
 	Long:  `Get summary metrics for a project's workflows. Workflow runs going back at most 90 days are included in the aggregation window.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("getProjectSummaryMetrics called")
-
 		slug, _ := cmd.Flags().GetString("slug")
 		branch, _ := cmd.Flags().GetString("branch")
 		format, _ := cmd.Flags().GetString("format")
@@ -42,13 +40,8 @@ var getProjectSummaryMetricsCmd = &cobra.Command{
 }
 
 func fetchInsightsSummary(slug, branch, reportingWindow string) (*data.InsightsSummary, error) {
-	if slug == "" || branch == "" {
-		return nil, errors.New("slug and branch must not be empty")
-	}
-
-	fmt.Println(baseURL)
 	url := fmt.Sprintf("%s/insights/%s/workflows/?branch=%s&reporting-window=%s", baseURL, slug, branch, reportingWindow)
-	fmt.Println(url)
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating HTTP request: %v", err)
@@ -84,15 +77,17 @@ func fetchInsightsSummary(slug, branch, reportingWindow string) (*data.InsightsS
 
 func printInsightsSummaryList(insights data.InsightsSummary) {
 	if len(insights.Items) > 0 {
+		l := list.NewWriter()
 		for _, item := range insights.Items {
-			fmt.Println("-----------------------------")
-			fmt.Printf("Workflow Name: %s\n", item.Name)
-			fmt.Printf("Credits Consumed: %d\n", item.Metrics.TotalCredits)
-			fmt.Printf("Success Rate: %.2f%%\n", item.Metrics.SuccessRate*100)
-			fmt.Printf("Total Runs: %d\n", item.Metrics.TotalRuns)
-			fmt.Printf("Failed Runs: %d\n", item.Metrics.FailedRuns)
-			fmt.Printf("Successful Runs: %d\n", item.Metrics.SuccessfulRuns)
+			l.AppendItem("-----------------------------")
+			l.AppendItem(fmt.Sprintf("Workflow Name: %s", item.Name))
+			l.AppendItem(fmt.Sprintf("Credits Consumed: %d", item.Metrics.TotalCredits))
+			l.AppendItem(fmt.Sprintf("Success Rate: %.2f%%", item.Metrics.SuccessRate*100))
+			l.AppendItem(fmt.Sprintf("Total Runs: %d", item.Metrics.TotalRuns))
+			l.AppendItem(fmt.Sprintf("Failed Runs: %d", item.Metrics.FailedRuns))
+			l.AppendItem(fmt.Sprintf("Successful Runs: %d", item.Metrics.SuccessfulRuns))
 		}
+		fmt.Println(l.Render())
 	} else {
 		fmt.Println("No data available.")
 	}
