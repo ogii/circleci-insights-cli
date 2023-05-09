@@ -22,7 +22,7 @@ var getProjectSummaryMetricsCmd = &cobra.Command{
 		format, _ := cmd.Flags().GetString("format")
 		reportingWindow, _ := cmd.Flags().GetString("reporting-window")
 
-		insightsSummary, err := fetchInsightsSummary(slug, branch, reportingWindow)
+		insightsSummary, err := fetchInsightsSummary(client, slug, branch, reportingWindow)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -37,19 +37,19 @@ var getProjectSummaryMetricsCmd = &cobra.Command{
 	},
 }
 
-func fetchInsightsSummary(slug, branch, reportingWindow string) (*data.InsightsSummary, error) {
+var client = &http.Client{
+	Timeout: 10 * time.Second,
+	Transport: &http.Transport{
+		MaxIdleConnsPerHost: 5,
+	},
+}
+
+func fetchInsightsSummary(client *http.Client, slug, branch, reportingWindow string) (*data.InsightsSummary, error) {
 	url := fmt.Sprintf("%s/insights/%s/workflows/?branch=%s&reporting-window=%s", baseURL, slug, branch, reportingWindow)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating HTTP request: %v", err)
-	}
-
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-		Transport: &http.Transport{
-			MaxIdleConnsPerHost: 5,
-		},
 	}
 
 	req.Header.Set("Content-Type", "application/json")
