@@ -1,11 +1,11 @@
 package data
 
 type InsightsSummary struct {
-	Workflows     []Workflows `json:"items"`
-	NextPageToken string      `json:"page-token"`
+	Workflows     []Workflow `json:"items"`
+	NextPageToken string     `json:"page-token"`
 }
 
-type Workflows struct {
+type Workflow struct {
 	Name        string     `json:"name"`
 	WindowStart string     `json:"window_start"`
 	WindowEnd   string     `json:"window_end"`
