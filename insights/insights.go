@@ -10,9 +10,9 @@ import (
 )
 
 func PrintInsightsSummaryList(insights data.InsightsSummary) {
-	if len(insights.Items) > 0 {
+	if len(insights.Workflows) > 0 {
 		l := list.NewWriter()
-		for _, item := range insights.Items {
+		for _, item := range insights.Workflows {
 			l.AppendItem("-----------------------------")
 			l.AppendItem(fmt.Sprintf("Workflow Name: %s", item.Name))
 			l.AppendItem(fmt.Sprintf("Credits Consumed: %d", item.Metrics.TotalCredits))
@@ -28,7 +28,7 @@ func PrintInsightsSummaryList(insights data.InsightsSummary) {
 }
 
 func PrintInsightsSummaryTable(insights data.InsightsSummary) {
-	itemsCount := len(insights.Items)
+	itemsCount := len(insights.Workflows)
 	if itemsCount == 0 {
 		fmt.Println("No data available.")
 		return
@@ -38,7 +38,7 @@ func PrintInsightsSummaryTable(insights data.InsightsSummary) {
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Workflow", "Credits Consumed", "Successful Runs", "Failed Runs", "Success Rate"})
 
-	for _, item := range insights.Items {
+	for _, item := range insights.Workflows {
 		t.AppendRow(table.Row{item.Name, item.Metrics.TotalCredits, item.Metrics.SuccessfulRuns, item.Metrics.FailedRuns, item.Metrics.SuccessRate * 100})
 	}
 	t.SetStyle(table.StyleBold)
