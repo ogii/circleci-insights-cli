@@ -45,31 +45,48 @@ var client = &http.Client{
 }
 
 func fetchInsightsSummary(client *http.Client, slug, branch, reportingWindow string) (*data.InsightsSummary, error) {
-	url := fmt.Sprintf("%s/insights/%s/workflows/?branch=%s&reporting-window=%s", baseURL, slug, branch, reportingWindow)
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("error creating HTTP request: %v", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Circle-Token", token)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("error making HTTP request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error: non-200 response from CircleCI API: %s", resp.Status)
-	}
-
 	var insightsSummary data.InsightsSummary
-	err = json.NewDecoder(resp.Body).Decode(&insightsSummary)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshaling JSON response: %v", err)
+	var nextPageToken string
+
+	for {
+		url := fmt.Sprintf("%s/insights/%s/workflows/?branch=%s&reporting-window=%s", baseURL, slug, branch, reportingWindow)
+		if nextPageToken != "" {
+			url += "&page-token=" + nextPageToken
+		}
+
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, fmt.Errorf("error creating HTTP request for URL %s: %v", url, err)
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Circle-Token", token)
+
+		resp, err := client.Do(req)
+		if err != nil {
+			return nil, fmt.Errorf("error making HTTP request to URL %s: %v", url, err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("non-200 response from CircleCI API for URL %s: %s", url, resp.Status)
+		}
+
+		var currentPage data.InsightsSummary
+		err = json.NewDecoder(resp.Body).Decode(&currentPage)
+		if err != nil {
+			return nil, fmt.Errorf("error unmarshaling JSON response from URL %s: %v", url, err)
+		}
+
+		insightsSummary.Workflows = append(insightsSummary.Workflows, currentPage.Workflows...)
+
+		if currentPage.NextPageToken == "" {
+			break
+		}
+
+		nextPageToken = currentPage.NextPageToken
 	}
+
 	return &insightsSummary, nil
 }
 
