@@ -1,12 +1,12 @@
 package data
 
 type InsightsSummary struct {
-	Items Items  `json:"items"`
+	Items []Item `json:"items"`
 	ID    string `json:"id"`
 	Name  string `json:"name"`
 }
 
-type Items []struct {
+type Item struct {
 	ID          string     `json:"id"`
 	Name        string     `json:"name"`
 	WindowStart string     `json:"window_start"`

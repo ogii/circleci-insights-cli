@@ -41,6 +41,7 @@ func PrintInsightsSummaryTable(insights data.InsightsSummary) {
 	for _, item := range insights.Items {
 		t.AppendRow(table.Row{item.Name, item.Metrics.TotalCredits, item.Metrics.SuccessfulRuns, item.Metrics.FailedRuns, item.Metrics.SuccessRate * 100})
 	}
-
+	t.SetStyle(table.StyleBold)
+	t.Style().Options.SeparateRows = true
 	t.Render()
 }
