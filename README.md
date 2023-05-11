@@ -26,6 +26,10 @@ API_URL=https://circleci.com/api/v2
 
 ## Usage/Examples
 
+### Commands
+
+#### getProjectSummaryMetrics
+
 To get a list of summary metrics for a project on the master branch in a list format:
 
 ```
@@ -35,3 +39,11 @@ circleci-insights-cli getProjectSummaryMetrics --slug gh/ogii/sampleproject --br
 Output:
 
 ![image](https://user-images.githubusercontent.com/640433/230855922-b0f6cad6-c161-46ca-8716-c9fad9a5688b.png)
+
+#### getProjectWorkflowJobs
+
+To get the summary metrics for jobs in a specific workflow:
+
+```
+circleci-insights-cli getProjectWorkflowJobs --slug gh/ogii/sampleproject --workflow test-testworkflow --branch master --format list
+```
