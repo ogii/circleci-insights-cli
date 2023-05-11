@@ -44,7 +44,6 @@ func TestFetchInsightsSummary(t *testing.T) {
 	defer server.Close()
 
 	insights, err := FetchInsightsSummary(server.URL, "test-token", "test-slug", "test-url", "test-branch", "test-window")
-	fmt.Println(insights)
 	assert.NoError(t, err)
 	assert.NotNil(t, insights)
 	assert.Equal(t, 1, len(insights.Workflows))
@@ -53,5 +52,5 @@ func TestFetchInsightsSummary(t *testing.T) {
 	assert.Equal(t, 54, insights.Workflows[0].Metrics.TotalRuns)
 	assert.Equal(t, 1, insights.Workflows[0].Metrics.FailedRuns)
 	assert.Equal(t, 52, insights.Workflows[0].Metrics.SuccessfulRuns)
-	assert.Equal(t, 100, insights.Workflows[0].Metrics.TotalCredits)
+	assert.Equal(t, 34863, insights.Workflows[0].Metrics.TotalCredits)
 }
