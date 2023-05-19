@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/jedib0t/go-pretty/list"
 	"github.com/jedib0t/go-pretty/table"
+	"github.com/ogii/circleci-insights-cli/client"
 	"github.com/ogii/circleci-insights-cli/data"
 )
 
@@ -59,13 +59,7 @@ func PrintInsightsSummaryTable(insights data.InsightsSummary, dataType string) {
 func FetchInsightsSummary(baseURL, token, slug, url, branch, reportingWindow string) (*data.InsightsSummary, error) {
 	var insightsSummary data.InsightsSummary
 	var nextPageToken string
-
-	var client = &http.Client{
-		Timeout: 10 * time.Second,
-		Transport: &http.Transport{
-			MaxIdleConnsPerHost: 5,
-		},
-	}
+	client := client.NewClient(baseURL, token)
 
 	for {
 		url := fmt.Sprintf("%s/insights/%s/workflows/%s?branch=%s&reporting-window=%s", baseURL, slug, url, branch, reportingWindow)
@@ -82,7 +76,7 @@ func FetchInsightsSummary(baseURL, token, slug, url, branch, reportingWindow str
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Circle-Token", token)
 
-		resp, err := client.Do(req)
+		resp, err := client.HTTPClient.Do(req)
 		if err != nil {
 			return nil, fmt.Errorf("error making HTTP request to URL %s: %v", url, err)
 		}
