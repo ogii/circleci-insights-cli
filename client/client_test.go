@@ -46,7 +46,6 @@ func TestFetchInsightsSummary(t *testing.T) {
 	client := NewClient(server.URL, "test-token")
 	insightsSummary, err := client.FetchInsightsSummary("test-slug", "test-url", "test-branch", "test-window")
 
-	fmt.Println(insightsSummary)
 	assert.NoError(t, err)
 	assert.NotNil(t, insightsSummary)
 	assert.Equal(t, 1, len(insightsSummary.Workflows))
