@@ -27,9 +27,11 @@ var getProjectSummaryMetricsCmd = &cobra.Command{
 
 		switch formatType := format; formatType {
 		case "table":
-			insights.PrintInsightsSummaryTable(*insightsSummary, "workflow")
+			insights.PrintInsightsSummaryTable(*insightsSummary, "Workflows")
+		case "csv":
+			insights.OutputInsightsSummaryToCSV(*insightsSummary, "Workflows", "output.csv")
 		default:
-			insights.PrintInsightsSummaryList(*insightsSummary, "workflow")
+			insights.PrintInsightsSummaryList(*insightsSummary, "Workflows")
 		}
 
 	},
