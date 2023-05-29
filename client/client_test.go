@@ -1,4 +1,4 @@
-package insights
+package client
 
 import (
 	"fmt"
@@ -43,14 +43,17 @@ func TestFetchInsightsSummary(t *testing.T) {
 	}))
 	defer server.Close()
 
-	insights, err := FetchInsightsSummary(server.URL, "test-token", "test-slug", "test-url", "test-branch", "test-window")
+	client := NewClient(server.URL, "test-token")
+	insightsSummary, err := client.FetchInsightsSummary("test-slug", "test-url", "test-branch", "test-window")
+
+	fmt.Println(insightsSummary)
 	assert.NoError(t, err)
-	assert.NotNil(t, insights)
-	assert.Equal(t, 1, len(insights.Workflows))
-	assert.Equal(t, "test-workflow", insights.Workflows[0].Name)
-	assert.Equal(t, 0.962962963, insights.Workflows[0].Metrics.SuccessRate)
-	assert.Equal(t, 54, insights.Workflows[0].Metrics.TotalRuns)
-	assert.Equal(t, 1, insights.Workflows[0].Metrics.FailedRuns)
-	assert.Equal(t, 52, insights.Workflows[0].Metrics.SuccessfulRuns)
-	assert.Equal(t, 34863, insights.Workflows[0].Metrics.TotalCredits)
+	assert.NotNil(t, insightsSummary)
+	assert.Equal(t, 1, len(insightsSummary.Workflows))
+	assert.Equal(t, "test-workflow", insightsSummary.Workflows[0].Name)
+	assert.Equal(t, 0.962962963, insightsSummary.Workflows[0].Metrics.SuccessRate)
+	assert.Equal(t, 54, insightsSummary.Workflows[0].Metrics.TotalRuns)
+	assert.Equal(t, 1, insightsSummary.Workflows[0].Metrics.FailedRuns)
+	assert.Equal(t, 52, insightsSummary.Workflows[0].Metrics.SuccessfulRuns)
+	assert.Equal(t, 34863, insightsSummary.Workflows[0].Metrics.TotalCredits)
 }
