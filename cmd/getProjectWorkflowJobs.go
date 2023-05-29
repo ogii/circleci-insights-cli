@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/ogii/circleci-insights-cli/client"
 	"github.com/ogii/circleci-insights-cli/insights"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +21,8 @@ var getProjectWorkflowJobsCmd = &cobra.Command{
 		workflow, _ := cmd.Flags().GetString("workflow")
 		url := fmt.Sprintf("%s/jobs", workflow)
 
-		insightsSummary, err := insights.FetchInsightsSummary(baseURL, token, slug, url, branch, reportingWindow)
+		client := client.NewClient(baseURL, token)
+		insightsSummary, err := client.FetchInsightsSummary(slug, url, branch, reportingWindow)
 		if err != nil {
 			log.Fatal(err)
 		}

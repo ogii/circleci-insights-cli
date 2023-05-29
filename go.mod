@@ -1,6 +1,6 @@
 module github.com/ogii/circleci-insights-cli
 
-go 1.18
+go 1.20
 
 require (
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
@@ -25,3 +25,5 @@ require (
 	golang.org/x/sys v0.7.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/ogii/circleci-insights-cli => ../
