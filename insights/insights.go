@@ -1,8 +1,10 @@
 package insights
 
 import (
+	"encoding/csv"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/jedib0t/go-pretty/list"
 	"github.com/jedib0t/go-pretty/table"
@@ -51,4 +53,32 @@ func PrintInsightsSummaryTable(insights data.InsightsSummary, dataType string) {
 	t.SetStyle(table.StyleBold)
 	t.Style().Options.SeparateRows = true
 	t.Render()
+}
+
+func OutputInsightsSummaryToCSV(insights data.InsightsSummary, dataType string, filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("failed to create file: %v", err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	writer.Write([]string{"", "", dataType, "", ""})
+
+	writer.Write([]string{"Name", "Credits Consumed", "Successful Runs", "Failed Runs", "Success Rate"})
+
+	for _, item := range insights.Workflows {
+		successRate := fmt.Sprintf("%.3f%%", item.Metrics.SuccessRate*100)
+		err = writer.Write([]string{item.Name, strconv.Itoa(item.Metrics.TotalCredits), strconv.Itoa(item.Metrics.SuccessfulRuns), strconv.Itoa(item.Metrics.FailedRuns), successRate})
+		if err != nil {
+			return fmt.Errorf("failed to write to file: %v", err)
+		}
+	}
+
+	if err := writer.Error(); err != nil {
+		return fmt.Errorf("failed to write to file: %v", err)
+	}
+	return nil
 }
