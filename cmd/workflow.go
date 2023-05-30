@@ -32,6 +32,8 @@ var getProjectWorkflowJobsCmd = &cobra.Command{
 			insights.PrintInsightsSummaryTable(*insightsSummary, "Jobs")
 		case "csv":
 			insights.OutputInsightsSummaryToCSV(*insightsSummary, "Jobs", "output.csv")
+		case "json":
+			insights.OutputInsightsSummaryToJSON(*insightsSummary)
 		default:
 			insights.PrintInsightsSummaryList(*insightsSummary, "Jobs")
 		}

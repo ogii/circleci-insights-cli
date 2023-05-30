@@ -2,6 +2,7 @@ package insights
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -80,5 +81,28 @@ func OutputInsightsSummaryToCSV(insights data.InsightsSummary, dataType string, 
 	if err := writer.Error(); err != nil {
 		return fmt.Errorf("failed to write to file: %v", err)
 	}
+	return nil
+}
+
+func OutputInsightsSummaryToJSON(insights data.InsightsSummary) error {
+	insightsData := []map[string]interface{}{}
+
+	for _, item := range insights.Workflows {
+		insightsData = append(insightsData, map[string]interface{}{
+			"name":            item.Name,
+			"credits_used":    item.Metrics.TotalCredits,
+			"successful_runs": item.Metrics.SuccessfulRuns,
+			"failed_runs":     item.Metrics.FailedRuns,
+			"success_rate":    fmt.Sprintf("%.3f%%", item.Metrics.SuccessRate*100),
+		})
+	}
+
+	jsonData, err := json.MarshalIndent(insightsData, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal data: %v", err)
+	}
+
+	fmt.Println(string(jsonData))
+
 	return nil
 }
