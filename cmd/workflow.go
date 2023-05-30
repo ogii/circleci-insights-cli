@@ -10,7 +10,7 @@ import (
 )
 
 var getProjectWorkflowJobsCmd = &cobra.Command{
-	Use:   "getProjectWorkflowJobs",
+	Use:   "workflow-job-summary",
 	Short: "Get summary metrics for a project workflow's jobs.",
 	Long:  `Get summary metrics for a project workflow's jobs. Job runs going back at most 90 days are included in the aggregation window.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -39,7 +39,7 @@ var getProjectWorkflowJobsCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(getProjectWorkflowJobsCmd)
+	getCmd.AddCommand(getProjectWorkflowJobsCmd)
 	getProjectWorkflowJobsCmd.Flags().String("slug", "", "The slug for a CircleCI project in the format `gh/orgname/projectname`")
 	getProjectWorkflowJobsCmd.Flags().String("branch", "main", "The branch for a CircleCI project")
 	getProjectWorkflowJobsCmd.Flags().String("format", "table", "The format of the results to be shown")
