@@ -31,7 +31,6 @@ func (c *Client) FetchInsightsSummary(slug, url, branch, reportingWindow string)
 
 	for {
 		url := fmt.Sprintf("%s/insights/%s/workflows/%s?branch=%s&reporting-window=%s", c.BaseURL, slug, url, branch, reportingWindow)
-		fmt.Println("View in browser: " + url)
 		if nextPageToken != "" {
 			url += "&page-token=" + nextPageToken
 		}
