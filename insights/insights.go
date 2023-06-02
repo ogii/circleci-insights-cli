@@ -13,27 +13,25 @@ import (
 )
 
 func PrintInsightsSummaryList(insights data.InsightsSummary, dataType string) {
-	if len(insights.Workflows) > 0 {
-		l := list.NewWriter()
-		for _, item := range insights.Workflows {
-			l.AppendItem("-----------------------------")
-			l.AppendItem(fmt.Sprintf("%sName: %s", dataType, item.Name))
-			l.AppendItem(fmt.Sprintf("Credits Consumed: %d", item.Metrics.TotalCredits))
-			l.AppendItem(fmt.Sprintf("Success Rate: %.3f%%", item.Metrics.SuccessRate*100))
-			l.AppendItem(fmt.Sprintf("Total Runs: %d", item.Metrics.TotalRuns))
-			l.AppendItem(fmt.Sprintf("Failed Runs: %d", item.Metrics.FailedRuns))
-			l.AppendItem(fmt.Sprintf("Successful Runs: %d", item.Metrics.SuccessfulRuns))
-		}
-		fmt.Println(l.Render())
-	} else {
-		fmt.Println("No data available.")
+	if !CheckIfWorkflowsDataEmpty(insights) {
+		return
 	}
+
+	l := list.NewWriter()
+	for _, item := range insights.Workflows {
+		l.AppendItem("-----------------------------")
+		l.AppendItem(fmt.Sprintf("%sName: %s", dataType, item.Name))
+		l.AppendItem(fmt.Sprintf("Credits Consumed: %d", item.Metrics.TotalCredits))
+		l.AppendItem(fmt.Sprintf("Success Rate: %.3f%%", item.Metrics.SuccessRate*100))
+		l.AppendItem(fmt.Sprintf("Total Runs: %d", item.Metrics.TotalRuns))
+		l.AppendItem(fmt.Sprintf("Failed Runs: %d", item.Metrics.FailedRuns))
+		l.AppendItem(fmt.Sprintf("Successful Runs: %d", item.Metrics.SuccessfulRuns))
+	}
+	fmt.Println(l.Render())
 }
 
 func PrintInsightsSummaryTable(insights data.InsightsSummary, dataType string) {
-	itemsCount := len(insights.Workflows)
-	if itemsCount == 0 {
-		fmt.Println("No data available.")
+	if !CheckIfWorkflowsDataEmpty(insights) {
 		return
 	}
 
@@ -85,6 +83,10 @@ func OutputInsightsSummaryToCSV(insights data.InsightsSummary, dataType string, 
 }
 
 func OutputInsightsSummaryToJSON(insights data.InsightsSummary) error {
+	if !CheckIfWorkflowsDataEmpty(insights) {
+		return fmt.Errorf("No data available")
+	}
+
 	insightsData := []map[string]interface{}{}
 
 	for _, item := range insights.Workflows {
@@ -105,4 +107,12 @@ func OutputInsightsSummaryToJSON(insights data.InsightsSummary) error {
 	fmt.Println(string(jsonData))
 
 	return nil
+}
+
+func CheckIfWorkflowsDataEmpty(insights data.InsightsSummary) bool {
+	if len(insights.Workflows) == 0 {
+		fmt.Println("No data available.")
+		return false
+	}
+	return true
 }
