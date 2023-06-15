@@ -30,34 +30,19 @@ func (c *Client) FetchInsightsSummary(slug, url, branch, reportingWindow string)
 	var nextPageToken string
 
 	for {
-		url := fmt.Sprintf("%s/insights/%s/workflows/%s?branch=%s&reporting-window=%s", c.BaseURL, slug, url, branch, reportingWindow)
-		if nextPageToken != "" {
-			url += "&page-token=" + nextPageToken
-		}
-
-		req, err := http.NewRequest("GET", url, nil)
+		req, err := c.BuildRequest(slug, url, branch, reportingWindow, nextPageToken)
 		if err != nil {
-			return nil, fmt.Errorf("error creating HTTP request for URL %s: %v", url, err)
+			return nil, err
 		}
 
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Circle-Token", c.Token)
-
-		resp, err := c.HTTPClient.Do(req)
+		resp, err := c.ExecuteRequest(req)
 		if err != nil {
-			return nil, fmt.Errorf("error making HTTP request to URL %s: %v", url, err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("non-200 response from CircleCI API for URL %s: %s", url, resp.Status)
+			return nil, err
 		}
 
-		var currentPage data.InsightsSummary
-		err = json.NewDecoder(resp.Body).Decode(&currentPage)
+		currentPage, err := c.HandleResponse(resp)
 		if err != nil {
-			resp.Body.Close()
-			return nil, fmt.Errorf("error unmarshaling JSON response from URL %s: %v", url, err)
+			return nil, err
 		}
 
 		insightsSummary.Workflows = append(insightsSummary.Workflows, currentPage.Workflows...)
@@ -67,6 +52,46 @@ func (c *Client) FetchInsightsSummary(slug, url, branch, reportingWindow string)
 		}
 
 		nextPageToken = currentPage.NextPageToken
+	}
+
+	return &insightsSummary, nil
+}
+
+func (c *Client) BuildRequest(slug, url, branch, reportingWindow, nextPageToken string) (*http.Request, error) {
+	url = fmt.Sprintf("%s/insights/%s/workflows/%s?branch=%s&reporting-window=%s", c.BaseURL, slug, url, branch, reportingWindow)
+	if nextPageToken != "" {
+		url += "&next_page_token=" + nextPageToken
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating HTTP request for URL %s: %v", url, err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Circle-Token", c.Token)
+
+	return req, nil
+}
+
+func (c *Client) ExecuteRequest(req *http.Request) (*http.Response, error) {
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error making HTTP request to URL %s: %v", req.URL, err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("non-200 response from CircleCI API for URL %s: %s", req.URL, resp.Status)
+	}
+	return resp, nil
+}
+
+func (c *Client) HandleResponse(resp *http.Response) (*data.InsightsSummary, error) {
+	defer resp.Body.Close()
+
+	var insightsSummary data.InsightsSummary
+	err := json.NewDecoder(resp.Body).Decode(&insightsSummary)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling JSON response from URL %s: %v", resp.Request.URL, err)
 	}
 	return &insightsSummary, nil
 }
