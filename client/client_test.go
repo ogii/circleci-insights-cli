@@ -15,7 +15,7 @@ func TestBuildRequest(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, req)
-	assert.Equal(t, "http://test-url.com/insights/test-slug/workflows/test-url?branch=test-branch&reporting-window=test-window", req.URL.String())
+	assert.Equal(t, "http://test-url.com/api/v2/insights/test-slug/workflows/test-url?branch=test-branch&reporting-window=test-window", req.URL.String())
 	assert.Equal(t, "000000000000000000000000000000", req.Header.Get("Circle-Token"))
 }
 
