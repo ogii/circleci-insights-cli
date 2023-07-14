@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/ogii/circleci-insights-cli/data"
@@ -57,15 +58,46 @@ func (c *Client) FetchInsightsSummary(slug, url, branch, reportingWindow string)
 	return &insightsSummary, nil
 }
 
-func (c *Client) BuildRequest(slug, url, branch, reportingWindow, nextPageToken string) (*http.Request, error) {
-	url = fmt.Sprintf("%s/insights/%s/workflows/%s?branch=%s&reporting-window=%s", c.BaseURL, slug, url, branch, reportingWindow)
-	if nextPageToken != "" {
-		url += "&next_page_token=" + nextPageToken
+// func (c *Client) BuildRequest(slug, url, branch, reportingWindow, nextPageToken string) (*http.Request, error) {
+// 	url = fmt.Sprintf("%s/insights/%s/workflows/%s?branch=%s&reporting-window=%s", c.BaseURL, slug, url, branch, reportingWindow)
+// 	if nextPageToken != "" {
+// 		url += "&next_page_token=" + nextPageToken
+// 	}
+
+// 	req, err := http.NewRequest("GET", url, nil)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error creating HTTP request for URL %s: %v", url, err)
+// 	}
+
+// 	req.Header.Set("Content-Type", "application/json")
+// 	req.Header.Set("Circle-Token", c.Token)
+
+// 	return req, nil
+// }
+
+func (c *Client) BuildRequest(slug, urlPath, branch, reportingWindow, nextPageToken string) (*http.Request, error) {
+	baseURL, err := url.Parse(c.BaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("invalid base URL: %v", err)
 	}
 
-	req, err := http.NewRequest("GET", url, nil)
+	// Construct the path
+	path := fmt.Sprintf("/api/v2/insights/%s/workflows/%s", slug, urlPath)
+
+	// Construct the query parameters
+	params := url.Values{}
+	params.Add("branch", branch)
+	params.Add("reporting-window", reportingWindow)
+	if nextPageToken != "" {
+		params.Add("next_page_token", nextPageToken)
+	}
+
+	// Construct the final URL
+	finalURL := baseURL.ResolveReference(&url.URL{Path: path, RawQuery: params.Encode()})
+
+	req, err := http.NewRequest("GET", finalURL.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating HTTP request for URL %s: %v", url, err)
+		return nil, fmt.Errorf("error creating HTTP request for URL %s: %v", finalURL, err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
