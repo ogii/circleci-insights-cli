@@ -3,6 +3,7 @@ package cmd
 import (
 	"log"
 	"os"
+	"path"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
@@ -12,7 +13,7 @@ var (
 	token    string
 	baseURL  string
 	loadEnvs = func() {
-		err := godotenv.Load()
+		err := godotenv.Load(path.Join(os.Getenv("HOME"), ".goinsightscli/.env"))
 		if err != nil {
 			log.Fatal("Error loading .env file")
 		}
