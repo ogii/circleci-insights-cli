@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"path"
+	"time"
 
 	"github.com/ogii/circleci-insights-cli/client"
 	"github.com/ogii/circleci-insights-cli/insights"
@@ -19,6 +21,7 @@ var getProjectWorkflowJobsCmd = &cobra.Command{
 		format, _ := cmd.Flags().GetString("format")
 		reportingWindow, _ := cmd.Flags().GetString("reporting-window")
 		workflow, _ := cmd.Flags().GetString("workflow")
+		output, _ := cmd.Flags().GetString("output")
 		url := fmt.Sprintf("%s/jobs", workflow)
 
 		client := client.NewClient(baseURL, token)
@@ -31,7 +34,9 @@ var getProjectWorkflowJobsCmd = &cobra.Command{
 		case "table":
 			insights.PrintInsightsSummaryTable(*insightsSummary, "Jobs")
 		case "csv":
-			insights.OutputInsightsSummaryToCSV(*insightsSummary, "Jobs", "output.csv")
+			var fullpath = path.Join(output, time.Now().UTC().Format("2006-01-02T15_04_05Z")+"_output.csv")
+			println(fullpath)
+			insights.OutputInsightsSummaryToCSV(*insightsSummary, "Jobs", fullpath)
 		case "json":
 			insights.OutputInsightsSummaryToJSON(*insightsSummary)
 		default:
@@ -47,6 +52,7 @@ func init() {
 	getProjectWorkflowJobsCmd.Flags().String("format", "table", "The format of the results to be shown")
 	getProjectWorkflowJobsCmd.Flags().String("reporting-window", "last-90-days", "The time window used to calculate summary metrics.")
 	getProjectWorkflowJobsCmd.Flags().String("workflow", "", "The name of the workflow")
+	getProjectWorkflowJobsCmd.Flags().String("output", "", "The location to save insights api output.")
 	getProjectWorkflowJobsCmd.MarkFlagRequired("slug")
 	getProjectWorkflowJobsCmd.MarkFlagRequired("workflow")
 }

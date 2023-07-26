@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/jedib0t/go-pretty/list"
@@ -22,7 +23,7 @@ func PrintInsightsSummaryList(insights data.InsightsSummary, dataType string) {
 		l.AppendItem("-----------------------------")
 		l.AppendItem(fmt.Sprintf("%sName: %s", dataType, item.Name))
 		l.AppendItem(fmt.Sprintf("Credits Consumed: %d", item.Metrics.TotalCredits))
-		l.AppendItem(fmt.Sprintf("Success Rate: %.3f%%", item.Metrics.SuccessRate*100))
+		l.AppendItem(fmt.Sprintf("Success Rate: %s", calculateSuccessRate(item.Metrics.SuccessRate)))
 		l.AppendItem(fmt.Sprintf("Total Runs: %d", item.Metrics.TotalRuns))
 		l.AppendItem(fmt.Sprintf("Failed Runs: %d", item.Metrics.FailedRuns))
 		l.AppendItem(fmt.Sprintf("Successful Runs: %d", item.Metrics.SuccessfulRuns))
@@ -54,8 +55,9 @@ func PrintInsightsSummaryTable(insights data.InsightsSummary, dataType string) {
 	t.Render()
 }
 
-func OutputInsightsSummaryToCSV(insights data.InsightsSummary, dataType string, filename string) error {
-	file, err := os.Create(filename)
+func OutputInsightsSummaryToCSV(insights data.InsightsSummary, dataType string, path string) error {
+	file, err := generateFile(path, 0770)
+
 	if err != nil {
 		return fmt.Errorf("failed to create file: %v", err)
 	}
@@ -95,7 +97,7 @@ func OutputInsightsSummaryToJSON(insights data.InsightsSummary) error {
 			"credits_used":    item.Metrics.TotalCredits,
 			"successful_runs": item.Metrics.SuccessfulRuns,
 			"failed_runs":     item.Metrics.FailedRuns,
-			"success_rate":    fmt.Sprintf("%.3f%%", item.Metrics.SuccessRate*100),
+			"success_rate":    calculateSuccessRate(item.Metrics.SuccessRate),
 		})
 	}
 
@@ -115,4 +117,24 @@ func CheckIfWorkflowsDataEmpty(insights data.InsightsSummary) bool {
 		return false
 	}
 	return true
+}
+
+func calculateSuccessRate(rate float64) string {
+	return fmt.Sprintf("%.3f%%", rate*100)
+}
+
+func generateFile(path string, permissions os.FileMode) (*os.File, error) {
+	dirPath := filepath.Dir(path)
+
+	err := os.MkdirAll(dirPath, permissions)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	file, err := os.Create(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create file: %w", err)
+	}
+
+	return file, nil
 }
