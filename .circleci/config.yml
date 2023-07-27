@@ -42,6 +42,8 @@ workflows:
     jobs:
       - test
       - build-upload:
+          context:
+            - insights-cli
           requires:
             - test
           # Only run this job on git tag pushes
