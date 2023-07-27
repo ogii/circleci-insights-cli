@@ -40,7 +40,10 @@ jobs:
 workflows:
   workflow:
     jobs:
-      - test
+      - test:
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
       - build-upload:
           context:
             - insights-cli
