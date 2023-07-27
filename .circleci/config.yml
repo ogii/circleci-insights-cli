@@ -1,7 +1,7 @@
 version: 2.1
 
 jobs:
-  build:
+  test:
     working_directory: ~/repo
     docker:
       - image: cimg/go:1.20.4
@@ -20,8 +20,33 @@ jobs:
       - run:
           name: Run tests
           command: go test ./... -v
+  build-upload:
+    docker:
+      - image: cimg/go:1.20.4
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.sum" }}
+      - run:
+          name: Install Dependencies
+          command: go get ./...
+      - save_cache:
+          key: go-mod-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+      - run: curl -sfL https://goreleaser.com/static/run | bash
 
 workflows:
   workflow:
     jobs:
-      - build
+      - test
+      - build-upload:
+          requires:
+            - test
+          # Only run this job on git tag pushes
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
