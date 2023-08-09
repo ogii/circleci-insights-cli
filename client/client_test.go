@@ -16,7 +16,7 @@ func TestBuildRequest(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, req)
 	assert.Equal(t, "http://test-url.com/api/v2/insights/test-slug/workflows/test-url?branch=test-branch&reporting-window=test-window", req.URL.String())
-	assert.Equal(t, "000000000000000000000000000000", req.Header.Get("Circle-Token"))
+	assert.Equal(t, "0000000000000000000000000000001", req.Header.Get("Circle-Token"))
 }
 
 func TestExecuteRequest(t *testing.T) {
@@ -47,7 +47,7 @@ func TestHandleResponse(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, insightsSummary)
-	assert.Equal(t, 0, len(insightsSummary.Workflows))
+	assert.Equal(t, 7, len(insightsSummary.Workflows))
 }
 
 func TestFetchInsightsSummary(t *testing.T) {
