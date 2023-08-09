@@ -19,7 +19,9 @@ jobs:
             - "/go/pkg/mod"
       - run:
           name: Run tests
-          command: go test ./... -v
+          command: |
+            #go test ./... -v
+            go list ./... | circleci tests run --command "xargs go test"
   build-upload:
     docker:
       - image: cimg/go:1.20.4
