@@ -5,6 +5,7 @@ jobs:
     working_directory: ~/repo
     docker:
       - image: cimg/go:1.20.4
+    resource_class: xlarge
     steps:
       - checkout
       - restore_cache:
